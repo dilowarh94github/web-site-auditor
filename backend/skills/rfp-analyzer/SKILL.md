@@ -4,3 +4,4 @@ description: Audits a prospective client's corporate website to uncover the ente
 ---
 
 # Scope and Boundaries
+
