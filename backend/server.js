@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import fs from 'fs';
@@ -5,17 +6,15 @@ import path from 'path';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import 'dotenv/config';
 import https from 'https';
-import {fileURLToPath } from 'url';
+import { fileURLToPath } from 'url';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 // Initialize Gemini AI Client
-const ai = new GoogleGenerativeAI({ apiKey: process.env.API_KEY });
-
+const ai = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY );
 // Tool: Axios + Cheerio Scraper function
 async function scrapeSiteData(targetUrl) {
     try {
@@ -24,24 +23,24 @@ async function scrapeSiteData(targetUrl) {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             },
             timeout: 10000,
-            httpsAgent: new https.Agent({rejectUnauthorized: false})
+            httpsAgent: new https.Agent({ rejectUnauthorized: false })
         });
 
         const $ = cheerio.load(data);
         $('script, style, svg, iframe, noscript').remove();
-        return $.html(); // Remove scripts to avoid noise
+        //return $.html(); // Remove scripts to avoid noise
 
-        // Core data extraction
-        // return {
-        //     url: targetUrl,
-        //     title: $('title').text().trim() || 'Missing Title',
-        //     metaDescription: $('meta[name="description"]').attr('content')?.trim() || 'Missing Description',
-        //     h1s: $('h1').map((_, el) => $(el).text().trim()).get(),
-        //     h2s: $('h2').map((_, el) => $(el).text().trim()).get().slice(0, 10), // Limit to avoid blowing context windows
-        //     totalImages: $('img').length,
-        //     imagesWithoutAlt: $('img:not([alt])').length,
-        //     isReactShell: ($('#root').length > 0 || $('#app').length > 0) && $('body').text().trim().length < 200
-        // };
+        //Core data extraction
+        return {
+            url: targetUrl,
+            title: $('title').text().trim() || 'Missing Title',
+            metaDescription: $('meta[name="description"]').attr('content')?.trim() || 'Missing Description',
+            h1s: $('h1').map((_, el) => $(el).text().trim()).get(),
+            h2s: $('h2').map((_, el) => $(el).text().trim()).get().slice(0, 10), // Limit to avoid blowing context windows
+            totalImages: $('img').length,
+            imagesWithoutAlt: $('img:not([alt])').length,
+            isReactShell: ($('#root').length > 0 || $('#app').length > 0) && $('body').text().trim().length < 200
+        };
     } catch (err) {
         throw new Error(`Failed to read website structure: ${err.message}`);
     }
@@ -54,7 +53,7 @@ app.post('/api/audit', async (req, res) => {
 
     try {
         const structuralData = await scrapeSiteData(url);
-        console.log("Scraped Structural Data:", structuralData);
+        //console.log("Scraped Structural Data:", structuralData);
         // if (structuralData){
         //     return res.json({ success: true, data: structuralData });
         // }
@@ -76,16 +75,20 @@ app.post('/api/audit', async (req, res) => {
         // 2. Load Agent Procedural Rules (SKILL.md)
         const __filename = fileURLToPath(import.meta.url);
         const __dirname = path.dirname(__filename);
-        const skillPath = path.resolve(__dirname, 'skills','web-site-auditor', 'SKILL.md');
+        const skillPath = path.resolve(__dirname, 'skills', 'web-site-auditor', 'SKILL.md');
         const skillInstructions = fs.readFileSync(skillPath, 'utf-8');
-        console.log("Loaded Skill Instructions:", skillInstructions);
+        //console.log("Loaded Skill Instructions:", skillInstructions);
 
         // 3. Assemble Core Context prompt
         const systemPrompt = `You are a strict data processing agent. Execute your instructions based exactly on this procedural file:\n\n${skillInstructions}`;
         const userPrompt = `Analyze the structural scraping payload below:\n${JSON.stringify(structuralData)}`;
 
         // 4. Fire prompt to LLM Model
-        const model = ai.getGenerativeModel({ model: "gemini-1.5-pro" });
+        //const model = ai.getGenerativeModel({ model: "gemini-1.5-pro" });
+        console.log("Gemini AI Client Initialized with API Key:", process.env.VITE_GEMINI_API_KEY);
+
+        const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
         const result = await model.generateContent({
             contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\nInput Data:\n${userPrompt}` }] }]
         });
