@@ -1,9 +1,10 @@
-name: First Github Action
+name: dusra workflow
 on: [workflow_dispatch]
 jobs:
  pehla-job:
   runs-on: ubuntu-latest
   steps:
-   - name: print hellow
-     run: echo "welcome to first step"
+   - name: pehla steps
+     run: echo "running wf"
+ 
   
