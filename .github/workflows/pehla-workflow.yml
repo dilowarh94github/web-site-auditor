@@ -10,22 +10,13 @@ jobs:
      uses: actions/setup-node@v7.1.0
      with:
       node-version: 22
- install-frontend-dependency:
-  runs-on: ubuntu-latest
-  needs: [checkout-code-and-install-node]
-  steps:
    - name: check package-lock json is available or not
      run: test -f frontend/package-lock.json
    - name: installing Dependency in frontend
      working-directory: frontend
      run : npm ci
- install-backend-dependency:
-  runs-on: ubuntu-latest
-  needs: [checkout-code-and-install-node]
-  steps:
    - name: check package-lock json is available or not
      run: test -f backend/package-lock.json
    - name: installing Dependency in backend
      working-directory: frontend
      run : npm ci
-  
