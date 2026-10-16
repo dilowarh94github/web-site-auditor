@@ -1,7 +1,7 @@
 name: dusra workflow
 on: [workflow_dispatch]
 jobs:
- pehla-job:
+ checkout-code-and-install-node:
   runs-on: ubuntu-latest
   steps:
    - name: checkout code
@@ -10,11 +10,22 @@ jobs:
      uses: actions/setup-node@v7.1.0
      with:
       node-version: 22
+ install-frontend-dependency:
+  runs-on: ubuntu-latest
+  needs: [checkout-code-and-install-node]
+  steps:
    - name: check package-lock json is available or not
      run: test -f frontend/package-lock.json
-   - name: install Dependency in frontend
+   - name: installing Dependency in frontend
      working-directory: frontend
      run : npm ci
-   - name: install Dependency in backend
-     working-directory: backend
+ install-backend-dependency:
+  runs-on: ubuntu-latest
+  needs: checkout-the-code
+  steps:
+   - name: check package-lock json is available or not
+     run: test -f backend/package-lock.json
+   - name: installing Dependency in backend
+     working-directory: frontend
      run : npm ci
+  
