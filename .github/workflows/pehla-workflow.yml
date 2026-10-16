@@ -10,5 +10,9 @@ jobs:
      uses: actions/setup-node@v7.1.0
      with:
       node-version: 22
-   - name: install Dependency
+   - name: install Dependency in frontend
+     working-directory: frontend
+     run : npm ci
+   - name: install Dependency in backend
+     working-directory: backend
      run : npm ci
