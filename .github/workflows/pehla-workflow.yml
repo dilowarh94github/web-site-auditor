@@ -11,7 +11,7 @@ jobs:
      with:
       node-version: 22
    - name: check package-lock json is available or not
-     run: check -f frontend/package-lock.json
+     run: test -f frontend/package-lock.json
    - name: install Dependency in frontend
      working-directory: frontend
      run : npm ci
